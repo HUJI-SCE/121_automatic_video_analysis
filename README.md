@@ -1,13 +1,13 @@
 # 💡 Project Title
-Use this template to describe and document your engineering project.
+Automated Defect Classification in Water Pipelines using Vision Transformers
 
 <!-- cool project cover image -->
-![Project Cover Image](/media/project-cover-img.jpg)
+![Project Cover Image](/media/back.png)
 
-<!-- table of content -->
 ## Table of Contents
 - [The Team](#the-team)
 - [Project Description](#project-description)
+- [Method](#method)
 - [Getting Started](#getting-started)
 - [Prerequisites](#prerequisites)
 - [Installing](#installing)
@@ -18,62 +18,97 @@ Use this template to describe and document your engineering project.
 
 ## 👥 The Team 
 **Team Members**
-- [Member 1](name@emial.com)
-- [Member 2](name@emial.com)
+- [Ibrahem Alyan](ibrahem.alyan@mail.huji.ac.il)
+- [Mustafa Shouman](name@mail.huji.ac.il)
+- [Riham Aladam](name@mail.huji.ac.il)
 
 **Supervisor**
-- [Supervisor](wwww.link_to_lab.com)
-
+- [Eliahu Horwitz](wwww.link_to_lab.com)
 
 ## 📚 Project Description
-- A brief description of the project/challange, what it does, and how it works.
-- A list of the main features and functionalities of the project.
-- A list of the main components of the project.
-- A list of the main technologies used in the project.
+Our solution aims to automate the classification of defects in water pipelines using IPIPE’s video data. We employ a Vision Transformer (ViT) Neural Network to analyze the data and extract vectors of image features. These feature vectors are then classified using a KNN classifier. This approach leverages the power of deep learning and machine learning techniques to accurately identify and classify anomalies in pipeline videos, contributing to improved maintenance and operational efficiency.
 
+## ⚙️ Method
+### Minimum Viable Product (MVP)
+Our automated analysis model is designed to process video inputs by initially segmenting them into individual frames. Each frame undergoes preprocessing steps, which include binary labeling, augmenting the frames, as well as adding noise reduction techniques to enhance image clarity.
+These preprocessed frames are then analyzed using a Vision Transformer (ViT) neural network, which extracts high-level features from each image. These feature vectors capture important patterns and characteristics present in the frames.
+The extracted feature vectors are then inputted into a k-Nearest Neighbors (KNN) classifier for supervised feature vector detection. This detector categorizes each frame based on the learned patterns, facilitating the identification of potential issues or defects within the video footage.
+Our MVP successfully achieves the task of identifying and returning timestamps of frames that are not classified as "clear," indicating the presence of anomalies or defects. During initial testing with a limited dataset, we achieved an impressive 99% accuracy rate. However, it's essential to note that this performance may not fully reflect real-world scenarios due to the limited amount of training data available at that time.
+Moving forward, with the receipt of a larger dataset from IPIPE company, we have an opportunity to further enhance the performance and robustness of our model.
 
 ## ⚡ Getting Started
-
-These instructions will give you a copy of the project up and running on
-your local machine for development and testing purposes. 
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
 
 ### 🧱 Prerequisites
-Requirements for the software and other tools to build, test and push 
-- [Example 1](https://www.example.com)
-- [Example 2](https://www.example.com)
+Ensure you have the following installed:
+- Python 3.7+
+- Jupyter Notebook or Google Colab
+- `transformers` library
+- `torch` library
+- `scikit-learn` library
+- `Pillow` library
 
 ### 🏗️ Installing
-A step by step series of examples that tell you how to get a development environment running
+1. **Clone the Repository:**
+    ```bash
+    git clone https://github.com/yourusername/project-repo.git
+    cd project-repo
+    ```
 
-Say what the step will be
+2. **Install the Required Libraries:**
+    ```bash
+    pip install transformers torch scikit-learn Pillow
+    ```
 
-    Give the example
+3. **Mount Google Drive (if using Colab):**
+    ```python
+    from google.colab import drive
+    drive.mount('/content/drive')
+    ```
 
-And repeat
+4. **Load the Pre-trained Model:**
+    ```python
+    from transformers import ViTFeatureExtractor, ViTModel
 
-    until finished
+    feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224')
+    model = ViTModel.from_pretrained('google/vit-base-patch16-224')
+    ```
 
-End with an example of getting some data out of the system or using it
-for a little demo
+### 🧪 Testing
+To test the project, run the Jupyter Notebook cells. Here's an example of running a simple test:
 
-## 🧪 Testing
-Explain how to run tests for this project
+1. **Load an Image and Apply Transformations:**
+    ```python
+    from PIL import Image
+    import torchvision.transforms as transforms
 
-### Sample Tests
-Explain what these tests test and why
+    data_transforms = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(15),
+        transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
+        transforms.ToTensor(),
+    ])
 
-    Give an example
+    image = Image.open('path/to/image.jpg')
+    transformed_image = data_transforms(image)
+    ```
+
+2. **Make a Prediction:**
+    ```python
+    with torch.no_grad():
+        inputs = feature_extractor(images=transformed_image, return_tensors="pt")
+        outputs = model(**inputs)
+        # Add your classifier logic here
+    ```
 
 ## 🚀 Deployment
-Add additional notes on how to deploy this on a live system
+To deploy the model, follow the instructions for setting up a server or use a platform like AWS, GCP, or Azure for hosting.
 
 ## ⚙️ Built With
-  - [Based on the amazing work of reserch group xxxx](https://www.example.com)
-  - [Contributor Covenant](https://www.contributor-covenant.org/) - Used for the Code of Conduct
-  - [Creative Commons](https://creativecommons.org/) - Used to choose the license
-
+- [Transformers](https://github.com/huggingface/transformers) - Pre-trained models and feature extractors.
+- [PyTorch](https://pytorch.org/) - Deep learning framework.
+- [scikit-learn](https://scikit-learn.org/stable/) - Machine learning library.
+- [Pillow](https://python-pillow.org/) - Image processing library.
 
 ## 🙏 Acknowledgments
-  - Hat tip to anyone whose code is used
-  - Inspiration
-  - etc
+- Thanks to everyone who contributed to the libraries and tools used in this project.
