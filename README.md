@@ -1,4 +1,4 @@
-# 💡 Project Title
+# 💡 Auto-Analysis of iPipe Video’s Data 
 Automated Defect Classification in Water Pipelines using Vision Transformers
 
 <!-- cool project cover image -->
