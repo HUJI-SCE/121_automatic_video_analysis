@@ -1,0 +1,2 @@
+knn_model_path: ./models/knn_concat_classifier.pkl
+model_name: google/vit-base-patch16-224
