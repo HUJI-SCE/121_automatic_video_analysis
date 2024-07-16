@@ -41,7 +41,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 ### 🏗️ Installing
 1. **Clone the Repository:**
     ```bash
-    git clone https://github.com/yourusername/project-repo.git
+    git clone https://github.com/HUJI-SCE/121_automatic_video_analysis.git
     cd project-repo
     ```
 
