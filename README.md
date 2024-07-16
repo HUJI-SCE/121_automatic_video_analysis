@@ -1,5 +1,5 @@
 # 💡 Auto-Analysis of iPipe Video’s Data 
-Automated Defect Classification in Water Pipelines using Vision Transformers
+Automated Defect Classification in Water Pipelines.
 
 <!-- cool project cover image -->
 ![Project Cover Image](/media/back.png)
