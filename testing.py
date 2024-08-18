@@ -7,7 +7,9 @@ from transformers import ViTModel
 import matplotlib.pyplot as plt
 import seaborn as sns
 import joblib
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report, roc_auc_score, average_precision_score, \
+    balanced_accuracy_score, precision_recall_curve, f1_score, cohen_kappa_score, matthews_corrcoef, fbeta_score
+from sklearn.preprocessing import label_binarize
 
 
 class PipeTester:
@@ -43,7 +45,8 @@ class PipeTester:
         results = {}
         for name, clf in classifiers.items():
             predictions = clf.predict(features)
-            results[name] = (true_labels, predictions)
+            probabilities = clf.predict_proba(features)
+            results[name] = (true_labels, predictions, probabilities)
         return results
 
     def load_classifiers(self, suffix):
@@ -73,6 +76,87 @@ class PipeTester:
         print(f"Classification Report - {classifier_name}")
         print(report)
 
+    def calculate_additional_metrics(self, true_labels, predictions, probabilities):
+        classes = np.unique(true_labels)
+        n_classes = len(classes)
+
+        # Binarize the true labels for multi-class metrics
+        true_labels_bin = label_binarize(true_labels, classes=classes)
+
+        # Calculate ROC AUC
+        if n_classes == 2:
+            roc_auc = roc_auc_score(true_labels, probabilities[:, 1])
+        else:
+            roc_auc = roc_auc_score(true_labels_bin, probabilities, average='macro', multi_class='ovr')
+
+        # Calculate PR AUC
+        if n_classes == 2:
+            pr_auc = average_precision_score(true_labels, probabilities[:, 1])
+        else:
+            pr_auc = average_precision_score(true_labels_bin, probabilities, average='macro')
+
+        # Calculate Balanced Accuracy
+        balanced_acc = balanced_accuracy_score(true_labels, predictions)
+
+        # Calculate G-mean
+        recalls = []
+        for cls in classes:
+            tp = np.sum((true_labels == cls) & (predictions == cls))
+            fn = np.sum((true_labels == cls) & (predictions != cls))
+            recalls.append(tp / (tp + fn))
+        g_mean = np.prod(recalls) ** (1 / n_classes)
+
+        # Calculate F-beta score (beta=2 to weigh recall higher than precision)
+        f_beta = fbeta_score(true_labels, predictions, beta=2, average='weighted')
+
+        # Calculate Cohen's Kappa
+        cohen_kappa = cohen_kappa_score(true_labels, predictions)
+
+        # Calculate Matthews Correlation Coefficient
+        mcc = matthews_corrcoef(true_labels, predictions)
+
+        return {
+            'ROC AUC': roc_auc,
+            'PR AUC': pr_auc,
+            'Balanced Accuracy': balanced_acc,
+            'G-mean': g_mean,
+            'F-beta Score (beta=2)': f_beta,
+            "Cohen's Kappa": cohen_kappa,
+            'Matthews Correlation Coefficient': mcc
+        }
+
+    def plot_precision_recall_curve(self, true_labels, probabilities, classifier_name):
+        classes = np.unique(true_labels)
+        n_classes = len(classes)
+
+        plt.figure(figsize=(10, 8))
+
+        if n_classes == 2:
+            precision, recall, _ = precision_recall_curve(true_labels, probabilities[:, 1])
+            plt.plot(recall, precision, lw=2, label='Precision-Recall curve')
+        else:
+            true_labels_bin = label_binarize(true_labels, classes=classes)
+            for i in range(n_classes):
+                precision, recall, _ = precision_recall_curve(true_labels_bin[:, i], probabilities[:, i])
+                plt.plot(recall, precision, lw=2, label=f'Precision-Recall curve of class {classes[i]}')
+
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.title(f'Precision-Recall Curve - {classifier_name}')
+        plt.legend(loc="lower left")
+        plt.savefig(f'precision_recall_curve_{classifier_name}.png')
+        plt.close()
+
+    def evaluate_classifier(self, true_labels, predictions, probabilities, classifier_name):
+        self.plot_confusion_matrix(true_labels, predictions, classifier_name)
+        self.print_classification_report(true_labels, predictions, classifier_name)
+        self.plot_precision_recall_curve(true_labels, probabilities, classifier_name)
+
+        additional_metrics = self.calculate_additional_metrics(true_labels, predictions, probabilities)
+        print(f"\nAdditional Metrics - {classifier_name}")
+        for metric, value in additional_metrics.items():
+            print(f"{metric}: {value:.4f}")
+
     def test(self):
         print("Extracting features with concatenated layers...")
         features_concat, true_labels = self.extract_features(concatenate_layers=True)
@@ -84,11 +168,10 @@ class PipeTester:
         classifiers_cls = self.load_classifiers('cls')
         results_cls = self.test_classifiers(classifiers_cls, features_cls, true_labels)
 
-        # Plot confusion matrices and print classification reports
-        for name, (true_labels, predictions) in results_concat.items():
-            self.plot_confusion_matrix(true_labels, predictions, f"{name}_concat")
-            self.print_classification_report(true_labels, predictions, f"{name}_concat")
+        for name, (true_labels, predictions, probabilities) in results_concat.items():
+            print(f"\nEvaluating {name} classifier (concatenated layers):")
+            self.evaluate_classifier(true_labels, predictions, probabilities, f"{name}_concat")
 
-        for name, (true_labels, predictions) in results_cls.items():
-            self.plot_confusion_matrix(true_labels, predictions, f"{name}_cls")
-            self.print_classification_report(true_labels, predictions, f"{name}_cls")
+        for name, (true_labels, predictions, probabilities) in results_cls.items():
+            print(f"\nEvaluating {name} classifier (CLS token only):")
+            self.evaluate_classifier(true_labels, predictions, probabilities, f"{name}_cls")

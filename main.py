@@ -22,11 +22,11 @@ def main():
     ])
 
     if args.mode == 'train':
-        train_dataset = PipeTrainDataset(root_dir="second_data/", transform=transform)
+        train_dataset = PipeTrainDataset(root_dir="worst_case_train/", transform=transform)
         trainer = PipeTrainer(train_dataset)
         trainer.train()
     elif args.mode == 'test':
-        test_dataset = PipeTestDataset(root_dir="first_data/", transform=transform)
+        test_dataset = PipeTestDataset(root_dir="worst_case_test/", transform=transform)
         tester = PipeTester(test_dataset)
         tester.test()
 
