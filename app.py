@@ -22,17 +22,37 @@ CONFIG_PATH = "config.yaml"
 
 
 def ensure_directories():
+    """
+    Ensures that the required directories for storing videos, results, and models exist. 
+    Creates them if they do not already exist.
+    """
     os.makedirs(VIDEO_DIR, exist_ok=True)
     os.makedirs(RESULTS_DIR, exist_ok=True)
     os.makedirs(MODEL_PATH, exist_ok=True)
 
 
 def load_config():
+    """
+    Loads the configuration settings from a YAML file.
+
+    Returns:
+        dict: A dictionary containing the configuration settings.
+    """
     with open(CONFIG_PATH, "r") as config_file:
         return yaml.safe_load(config_file)
 
 
 def load_models(config):
+    """
+    Loads the Vision Transformer (ViT) model and the k-Nearest Neighbors (k-NN) classifier 
+    from the specified paths in the configuration.
+
+    Args:
+        config (dict): The configuration dictionary containing model paths.
+
+    Returns:
+        tuple: A tuple containing the ViT model and the k-NN classifier.
+    """
     model = ViTForImageClassification.from_pretrained(config['model_name'])
     model.eval()
     with open(config['knn_model_path'], "rb") as f:
@@ -41,12 +61,27 @@ def load_models(config):
 
 
 def display_video_upload_section():
+    """
+    Displays a section in the Streamlit interface for uploading a video file.
+
+    Returns:
+        UploadedFile: The file object uploaded by the user.
+    """
     st.header("Upload your video")
     uploaded_file = st.file_uploader("Choose a video file", type=["mp4", "mov", "avi"])
     return uploaded_file
 
 
 def process_video_upload(uploaded_file):
+    """
+    Saves the uploaded video file to the specified directory.
+
+    Args:
+        uploaded_file (UploadedFile): The uploaded video file.
+
+    Returns:
+        str: The file path where the video is saved.
+    """
     video_path = os.path.join(VIDEO_DIR, uploaded_file.name)
     with open(video_path, "wb") as f:
         f.write(uploaded_file.read())
@@ -54,6 +89,15 @@ def process_video_upload(uploaded_file):
 
 
 def display_time_inputs(video_length):
+    """
+    Displays input fields in the Streamlit interface for selecting the start and end times of the video processing.
+
+    Args:
+        video_length (float): The total length of the video in seconds.
+
+    Returns:
+        tuple: A tuple containing the start time and end time inputs as floats.
+    """
     col1, col2 = st.columns(2)
     with col1:
         start_time_input = st.number_input("Start time (seconds)", min_value=0.0, value=0.0, step=1.0)
@@ -63,6 +107,12 @@ def display_time_inputs(video_length):
 
 
 def display_control_buttons():
+    """
+    Displays control buttons (Start and Stop) in the Streamlit interface for controlling the video processing.
+
+    Returns:
+        tuple: A tuple containing the states of the start and stop buttons as booleans.
+    """
     col3, col4 = st.columns(2)
     with col3:
         start_button = st.button("Start")
@@ -82,6 +132,13 @@ def display_control_buttons():
 
 
 def display_frame_results(class_names):
+    """
+    Displays the processed frames and their predicted labels, allows the user to correct the predictions, 
+    and saves the results.
+
+    Args:
+        class_names (list): A list of class names for predictions.
+    """
     frames_per_page = 10
     total_frames = len(st.session_state.frames)
     total_pages = (total_frames + frames_per_page - 1) // frames_per_page
@@ -131,6 +188,15 @@ def display_frame_results(class_names):
 
 
 def main_page(model, knn, transform, class_names):
+    """
+    The main page for the Streamlit application. Handles video upload, processing, and displaying results.
+
+    Args:
+        model (ViTForImageClassification): The Vision Transformer model.
+        knn (KNeighborsClassifier): The k-NN classifier.
+        transform (transforms.Compose): The image transformation pipeline.
+        class_names (list): A list of class names for predictions.
+    """
     st.title("Automatic Video Analysis")
     uploaded_file = display_video_upload_section()
     finished=False
@@ -156,6 +222,10 @@ def main_page(model, knn, transform, class_names):
 
 
 def train_new_data_page():
+    """
+    The page for training new data in the Streamlit application.
+    Allows the user to select a directory of images, specify a device, and train a new model.
+    """
     st.title("Train New Data")
 
     # Replace the drag and drop with directory selection
@@ -202,6 +272,13 @@ def train_new_data_page():
 
 
 def settings_page(config):
+    """
+    The settings page for the Streamlit application.
+    Allows the user to view and update the currently used KNN model.
+
+    Args:
+        config (dict): The configuration dictionary containing model paths and other settings.
+    """
     st.title("Settings")
 
     st.subheader("Currently Used KNN Model")
@@ -233,17 +310,28 @@ def settings_page(config):
 
 
 def performance_page():
+    """
+    Placeholder for the performance page in the Streamlit application.
+    """
     st.title("Model Performance")
 
 
 def last_uses_page():
+    """
+    Placeholder for the page displaying previous predictions in the Streamlit application.
+    """
     st.title("Previous Predictions")
 
 
 def main():
+    """
+    The main function for the Streamlit application.
+    Handles navigation between different pages and loads necessary models and configurations.
+    """
     ensure_directories()
     config = load_config()
     model, knn = load_models(config)
+
     # Call this function to display the logos
     lst = ["Main Page", 'Train New Data', "Settings"]
     st.sidebar.title("Navigation")
@@ -268,5 +356,8 @@ def main():
 
 
 if __name__ == '__main__':
-
+    """
+    The entry point of the script.
+    Calls the `main()` function to start the Streamlit application.
+    """
     main()
