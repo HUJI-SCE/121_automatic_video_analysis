@@ -1,4 +1,3 @@
-# main.py
 import argparse
 from torchvision import transforms
 from base import PipeTestDataset, PipeTrainDataset
@@ -8,6 +7,20 @@ from transformers import ViTImageProcessor
 
 
 def main():
+    """
+    Main function to handle training or testing of pipe classifiers.
+
+    This function parses command-line arguments to determine whether to train or test the classifiers.
+    Depending on the mode, it initializes the appropriate dataset, feature extractor, and pipeline (training or testing),
+    and then executes the respective pipeline.
+
+    Command-line Arguments:
+        --mode: Specifies whether to run the script in 'train' or 'test' mode.
+
+    Actions:
+        - If in 'train' mode, it trains classifiers on the training dataset.
+        - If in 'test' mode, it tests classifiers on the testing dataset.
+    """
     parser = argparse.ArgumentParser(description="Train or test pipe classifiers")
     parser.add_argument('--mode', choices=['train', 'test'], required=True, help='Mode: train or test')
     args = parser.parse_args()
@@ -32,4 +45,10 @@ def main():
 
 
 if __name__ == "__main__":
+    """
+    The main entry point of the script. 
+
+    When the script is run directly, this block is executed. It calls the `main()` function
+    to start the training or testing process based on the provided command-line arguments.
+    """
     main()
